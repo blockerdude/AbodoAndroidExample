@@ -4,8 +4,10 @@ import android.graphics.drawable.Drawable;
 import android.os.SystemClock;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
@@ -15,10 +17,8 @@ import android.widget.TextView;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.w3c.dom.Text;
 
-import java.io.InputStream;
-import java.net.URL;
+import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -37,36 +37,45 @@ public class MainActivity extends AppCompatActivity {
                 //output should be the JSON string fetched from the endpoint.
                 try {
                     JSONArray jsonArray = new JSONArray(output);
+                    final ArrayList<ListingView> listings = new ArrayList<>();
                     LinearLayout listingsView = (LinearLayout) findViewById(R.id.LinearLayout_listings);
-                    JSONObject curListing;
+                    JSONObject curObject;
+                    ListingView curListing;
                     for(int x=0; x<jsonArray.length(); x++){
-                        curListing = jsonArray.getJSONObject(x);
+                        curObject = jsonArray.getJSONObject(x);
                         ViewGroup expanded = (ViewGroup) View.inflate(MainActivity.this, R.layout.listing_view, listingsView);
                         TextView listingPrice = (TextView) listingsView.getChildAt(x).findViewById(R.id.TextView_listingPrice);
                         TextView listingAddress = (TextView) listingsView.getChildAt(x).findViewById(R.id.TextView_propAddress);
                         TextView listingTitle = (TextView) listingsView.getChildAt(x).findViewById(R.id.TextView_listingTitle);
-                        final ImageView listingImage = (ImageView) listingsView.getChildAt(x).findViewById(R.id.ImageView_listing);
-                        listingPrice.setText(curListing.getString("rent_range"));
-                        if(curListing.has("address")){
-                            listingAddress.setText(curListing.getString("address"));
-                        }
-                        else {
-                            listingAddress.setText(curListing.getString("prop_display_name"));
-                        }
-                        listingTitle.setText(curListing.getString("beds_range"));
+                        final ImageButton listingImage = (ImageButton) listingsView.getChildAt(x).findViewById(R.id.ImageButton_listing);
+                        curListing = getListingFromJSONObject(curObject);
+                        if(curListing != null) {
+                            listings.add(curListing);
+                            listingPrice.setText(curListing.getPriceRange());
+                            listingAddress.setText(curListing.getAddress());
+                            listingTitle.setText(curListing.getTitle());
 
-                        new AsyncImageFetcher(new AsyncImageFetcher.AsyncImageFetchResponse() {
+                            new AsyncImageFetcher(new AsyncImageFetcher.AsyncImageFetchResponse() {
+                                @Override
+                                public void processFinish(Drawable output) {
+                                    if(output != null){
+                                        listingImage.setImageDrawable(output);
+                                    }
+                                    else{
+                                        //image is null, for some reason it failed to fetch
+                                    }
+                                }
+                            }).execute(curObject.getString("tile_url"), curObject.getString("prop_display_name"));
+                                //for some reason it is much faster to use these values then get from curListing
+                        }
+                        final ListingView finalCurListing = curListing;
+                        listingImage.setOnTouchListener(new View.OnTouchListener() {
                             @Override
-                            public void processFinish(Drawable output) {
-                                if(output != null) {
-                                    listingImage.setImageDrawable(output);
-                                }
-                                else {
-                                    System.out.println("Image was null");
-                                }
+                            public boolean onTouch(View v, MotionEvent event) {
+                                System.out.println(finalCurListing.getAddress());
+                                return true;
                             }
-                        }).execute(curListing.getString("tile_url"), curListing.getString("prop_display_name"));
-
+                        });
                     }
                 }
                 catch(JSONException e){
@@ -75,6 +84,28 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         }).execute(DATAENDPOINTLOCATION);
+
+    }
+
+    private ListingView getListingFromJSONObject(JSONObject curObject){
+        try {
+            ListingView listingView;
+            String address, priceRange, title, imageURL;
+            if (curObject.has("address")) {
+                address = curObject.getString("address");
+            } else {
+                address = curObject.getString("prop_display_name");
+            }
+            priceRange = curObject.getString("rent_range");
+            title = curObject.getString("beds_range");
+            imageURL = curObject.getString("tile_url");
+
+            listingView = new ListingView(imageURL, priceRange, title, address);
+            return listingView;
+        }
+        catch(JSONException e){
+            return null;
+        }
 
     }
 
