@@ -22,8 +22,18 @@ public class AsyncDataFetch extends AsyncTask<String, Integer, String> {
     private InputStream inputStream;
     private Context currentContext;
 
-    public AsyncDataFetch(Context currentContext){
+
+    private AsyncDataFetchResponse delegate = null;
+    public interface AsyncDataFetchResponse {
+        void processFinish(String output);
+    }
+
+
+
+
+    public AsyncDataFetch(Context currentContext, AsyncDataFetchResponse delegate){
         this.currentContext = currentContext;
+        this.delegate = delegate;
     }
 
     @Override
@@ -66,7 +76,8 @@ public class AsyncDataFetch extends AsyncTask<String, Integer, String> {
     }
     @Override
     protected void onPostExecute(String result){
-        //can update the UI thread, or pass this info off to some other place
+        delegate.processFinish(result);
+        progressDialog.dismiss();
 
     }
     /*

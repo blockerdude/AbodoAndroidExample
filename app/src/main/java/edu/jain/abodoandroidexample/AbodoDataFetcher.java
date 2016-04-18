@@ -2,8 +2,10 @@ package edu.jain.abodoandroidexample;
 
 import android.content.Context;
 import android.os.AsyncTask;
+import android.widget.TextView;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 /*
@@ -18,12 +20,25 @@ public class AbodoDataFetcher {
                     "-89.39389799999998&min_rent=&max_rent=&passed_search_area_text=Madison,%20WI%20Apartments";
     public AbodoDataFetcher(Context currentContext){
         curContext = currentContext;
-    }
-    private JSONArray getJSONData(){
-        String result;
-        new AsyncDataFetch(curContext).execute(DATAENDPOINTLOCATION);
 
-        return null;
+    }
+    public JSONArray getJSONData(){
+        final JSONArray[] jsonArray = new JSONArray[2];
+        new AsyncDataFetch(curContext, new AsyncDataFetch.AsyncDataFetchResponse() {
+            @Override
+            public void processFinish(String output) {
+                //output should be the JSON string fetched from the endpoint.
+                try {
+                    jsonArray[0] = new JSONArray(output);
+                }
+                catch(JSONException e){
+                    //malformed JSON
+                    e.printStackTrace();
+                }
+            }
+        }).execute(DATAENDPOINTLOCATION);
+
+        return jsonArray[0];
     }
 
 
