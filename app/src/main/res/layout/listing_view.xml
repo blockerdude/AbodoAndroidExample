@@ -5,8 +5,8 @@
     android:layout_marginBottom="10dp">
 
 
-    <ImageView
-        android:id="@+id/ImageView_listing"
+    <ImageButton
+        android:id="@+id/ImageButton_listing"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:scaleType="fitXY"

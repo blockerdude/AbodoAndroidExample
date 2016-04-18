@@ -1,27 +1,47 @@
 package edu.jain.abodoandroidexample;
 
-import android.content.Context;
-import android.graphics.Canvas;
-import android.util.AttributeSet;
-import android.view.View;
+public class ListingView {
 
-/**
- * Created by Nikhil on 4/17/2016.
- */
-public class ListingView extends View {
-    public ListingView(Context context) {
-        super(context);
+
+    private String priceRange, title, address, imageURL;
+    public ListingView(String imageURL, String priceRange, String title, String address){
+        setImageURL(imageURL);
+        setPriceRange(priceRange);
+        setTitle(title);
+        setAddress(address);
     }
 
-    public ListingView(Context context, AttributeSet attrs) {
-        super(context, attrs);
+    public String getImageURL() {
+        return imageURL;
     }
 
-    public ListingView(Context context, AttributeSet attrs, int defStyleAttr) {
-        super(context, attrs, defStyleAttr);
+    public void setImageURL(String image) {
+        this.imageURL = image;
     }
-    @Override
-    protected void onDraw(Canvas canvas){
 
+    public String getPriceRange() {
+        return priceRange;
     }
+
+    public void setPriceRange(String priceRange) {
+        this.priceRange = priceRange;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
+    }
+
+
 }
