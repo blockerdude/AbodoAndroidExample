@@ -1,17 +1,14 @@
 package edu.jain.abodoandroidexample;
 
 import android.graphics.drawable.Drawable;
-import android.os.SystemClock;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AlertDialog;
+import android.support.v7.app.AppCompatActivity;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.ListView;
-import android.widget.ScrollView;
 import android.widget.TextView;
 
 import org.json.JSONArray;
@@ -22,7 +19,7 @@ import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
 
-
+    private boolean touched = false;
     private static final String DATAENDPOINTLOCATION =
             "https://www.abodo.com/search/get_property_results.json?lat=43.0752983&lng=" +
                     "-89.39389799999998&min_rent=&max_rent=&passed_search_area_text=Madison,%20WI%20Apartments";
@@ -47,34 +44,34 @@ public class MainActivity extends AppCompatActivity {
                         TextView listingPrice = (TextView) listingsView.getChildAt(x).findViewById(R.id.TextView_listingPrice);
                         TextView listingAddress = (TextView) listingsView.getChildAt(x).findViewById(R.id.TextView_propAddress);
                         TextView listingTitle = (TextView) listingsView.getChildAt(x).findViewById(R.id.TextView_listingTitle);
-                        final ImageButton listingImage = (ImageButton) listingsView.getChildAt(x).findViewById(R.id.ImageButton_listing);
+                        ImageButton listingImage = (ImageButton) listingsView.getChildAt(x).findViewById(R.id.ImageButton_listing);
                         curListing = getListingFromJSONObject(curObject);
                         if(curListing != null) {
                             listings.add(curListing);
                             listingPrice.setText(curListing.getPriceRange());
                             listingAddress.setText(curListing.getAddress());
                             listingTitle.setText(curListing.getTitle());
-
-                            new AsyncImageFetcher(new AsyncImageFetcher.AsyncImageFetchResponse() {
-                                @Override
-                                public void processFinish(Drawable output) {
-                                    if(output != null){
-                                        listingImage.setImageDrawable(output);
-                                    }
-                                    else{
-                                        //image is null, for some reason it failed to fetch
-                                    }
-                                }
-                            }).execute(curObject.getString("tile_url"), curObject.getString("prop_display_name"));
-                                //for some reason it is much faster to use these values then get from curListing
+                            setImage(listingImage, curListing.getImageURL(), curListing.getAddress());
                         }
                         final ListingView finalCurListing = curListing;
                         listingImage.setOnTouchListener(new View.OnTouchListener() {
                             @Override
                             public boolean onTouch(View v, MotionEvent event) {
-                                System.out.println(finalCurListing.getAddress());
+                                if (!touched) {
+                                    AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+
+                                    builder.setTitle(finalCurListing.getTitle());
+                                    builder.setMessage("This listing is for " + finalCurListing.getAddress());
+                                    AlertDialog dialog = builder.create();
+                                    dialog.show();
+
+                                }
+                                else{
+                                    touched = false;
+                                }
                                 return true;
                             }
+
                         });
                     }
                 }
@@ -108,6 +105,21 @@ public class MainActivity extends AppCompatActivity {
         }
 
     }
+    private void setImage(final ImageButton button, String url, String desc){
+        new AsyncImageFetcher(new AsyncImageFetcher.AsyncImageFetchResponse() {
+            @Override
+            public void processFinish(Drawable output) {
+                if(output != null){
+                    button.setImageDrawable(output);
+                }
+                else{
+                    //image is null, for some reason it failed to fetch
+                }
+            }
+        }).execute(url, desc);
+        //for some reason it is much faster to use these values then get from curListing
+    }
+
 
 
 }
